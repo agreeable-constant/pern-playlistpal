@@ -1,142 +1,221 @@
 import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 
 const EditPlaylist = () => {
-    const [playlist, setPlaylist] = useState([]); // Holds the list of songs
-    const [collaborators, setCollaborators] = useState([]); // Holds the list of collaborators
-    const [songDetails, setSongDetails] = useState({
-        songName: "",
-        songArtist: "",
-        songImage: "",
-        songUrl: "",
+  const [playlist, setPlaylist] = useState([]); // Holds the list of songs
+  const [collaborators, setCollaborators] = useState([]); // Holds the list of collaborators
+  const [songDetails, setSongDetails] = useState({
+    songName: "",
+    songArtist: "",
+    songImage: "",
+    songUrl: "",
+  });
+  const [newCollaboratorEmail, setNewCollaboratorEmail] = useState("");
+  const { playlistId } = useParams();
+
+
+  const handleSongDetailChange = (e) => {
+    setSongDetails({ ...songDetails, [e.target.name]: e.target.value });
+  };
+
+  const addSong = async (e) => {
+    e.preventDefault();
+
+
+    const songData = {
+      song_name: songDetails.songName,
+      song_artist: songDetails.songArtist,
+      song_image: songDetails.songImage,
+      song_url: songDetails.songUrl,
+    };
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/edit-playlist/${playlistId}/songs`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(songData),
+        }
+      );
+
+      if (response.ok) {
+        console.log("Song added successfully");
+        // Update local state or fetch updated playlist data
+      } else {
+        console.error("Failed to add song", response.status);
+      }
+    } catch (error) {
+      console.error("An error occurred", error);
+    }
+
+    // Resetting the form
+    setSongDetails({
+      songName: "",
+      songArtist: "",
+      songImage: "",
+      songUrl: "",
     });
-    const [newCollaboratorEmail, setNewCollaboratorEmail] = useState("");
+  };
 
-    const handleSongDetailChange = (e) => {
-        setSongDetails({ ...songDetails, [e.target.name]: e.target.value });
+  const deleteSong = async (songId) => {
+    const playlistId = "your-playlist-id"; // Replace with actual playlist ID
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/playlist/${playlistId}/songs/${songId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        console.log("Song deleted successfully");
+        // Update local state or fetch updated playlist data
+      } else {
+        console.error("Failed to delete song", response.status);
+      }
+    } catch (error) {
+      console.error("An error occurred", error);
+    }
+  };
+
+  const deletePlaylist = () => {
+    // Logic to delete the playlist
+    setPlaylist([]);
+  };
+
+  const addCollaborator = async (e) => {
+    e.preventDefault();
+
+    const collaboratorData = {
+      collaborator_email: newCollaboratorEmail, // Assuming collaboratorId is the email, adjust if necessary
     };
 
-    const addSong = (e) => {
-        e.preventDefault();
-        // Logic to add a new song to the playlist
-        const newSong = {
-            name: songDetails.songName,
-            artist: songDetails.songArtist,
-            image: songDetails.songImage,
-            url: songDetails.songUrl,
-            id: Date.now(), // Generate a unique ID for the song
-        };
-        setPlaylist([...playlist, newSong]);
+    try {
+      const response = await fetch(
+        `http://localhost:5000/edit-playlist/${playlistId}/collaborators`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(collaboratorData),
+        }
+      );
+      console.log(collaboratorData)
 
-        // Resetting the form
-        setSongDetails({
-            songName: "",
-            songArtist: "",
-            songImage: "",
-            songUrl: "",
-        });
-    };
+      if (response.ok) {
+        console.log("Collaborator added successfully");
+        // Optionally, update local state or fetch updated collaborators data
+      } else {
+        console.error("Failed to add collaborator", response.status);
+      }
+    } catch (error) {
+      console.error("An error occurred", error);
+    }
 
-    const deleteSong = (songId) => {
-        // Logic to delete a song from the playlist
-        const updatedPlaylist = playlist.filter((song) => song.id !== songId);
-        setPlaylist(updatedPlaylist);
-    };
+    setNewCollaboratorEmail(""); // Reset the input field
 
-    const deletePlaylist = () => {
-        // Logic to delete the playlist
-        setPlaylist([]);
-    };
+  };
 
-    const addCollaborator = (e) => {
-        e.preventDefault();
-        // Logic to add a collaborator to the playlist
-        const newCollaborator = {
-            email: newCollaboratorEmail,
-        };
-        setCollaborators([...collaborators, newCollaborator]);
-        setNewCollaboratorEmail(""); // Reset after adding
-    };
+  const deleteCollaborator = async (collaboratorEmail) => {
+    const playlistId = "your-playlist-id"; // Replace with actual playlist ID
 
-    const deleteCollaborator = (collaboratorEmail) => {
-        // Logic to delete a collaborator from the playlist
-        const updatedCollaborators = collaborators.filter(
-            (collaborator) => collaborator.email !== collaboratorEmail
-        );
-        setCollaborators(updatedCollaborators);
-    };
+    try {
+      const response = await fetch(
+        `http://localhost:5000/playlist/${playlistId}/collaborators/${collaboratorEmail}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-    return (
-        <div>
-            <h2>Edit Playlist</h2>
-
-            {/* Form to add a new song */}
-            <form onSubmit={addSong}>
-                <input
-                    type="text"
-                    name="songName"
-                    value={songDetails.songName}
-                    onChange={handleSongDetailChange}
-                    placeholder="Song Name"
-                />
-                <input
-                    type="text"
-                    name="songArtist"
-                    value={songDetails.songArtist}
-                    onChange={handleSongDetailChange}
-                    placeholder="Artist Name"
-                />
-                <input
-                    type="text"
-                    name="songImage"
-                    value={songDetails.songImage}
-                    onChange={handleSongDetailChange}
-                    placeholder="Song Image URL (optional)"
-                />
-                <input
-                    type="text"
-                    name="songUrl"
-                    value={songDetails.songUrl}
-                    onChange={handleSongDetailChange}
-                    placeholder="Song URL"
-                />
-                <button type="submit">Add Song</button>
-            </form>
-
-            {/* Form to add a new collaborator */}
-            <form onSubmit={addCollaborator}>
-                <input
-                    type="email"
-                    value={newCollaboratorEmail}
-                    onChange={(e) => setNewCollaboratorEmail(e.target.value)}
-                    placeholder="Enter collaborator's email"
-                />
-                <button type="submit">Add Collaborator</button>
-            </form>
-
-            {/* Button to delete the entire playlist */}
-            <button onClick={deletePlaylist}>Delete Playlist</button>
-
-            <h2>Songs</h2>
-            {/* List of songs */}
-            {playlist.map((song, index) => (
-                <div key={index}>
-                    {song.name} - {song.artist}
-                    <button onClick={() => deleteSong(song.id)}>Delete</button>
-                </div>
-            ))}
-
-            <h2>Collaborators</h2>
-            {/* List of collaborators */}
-            {collaborators.map((collaborator, index) => (
-                <div key={index}>
-                    {collaborator.email}
-                    <button onClick={() => deleteCollaborator(collaborator.email)}>
-                        Delete
-                    </button>
-                </div>
-            ))}
-        </div>
+      if (response.ok) {
+        console.log("Collaborator deleted successfully");
+        // Optionally, update local state or fetch updated collaborators data
+      } else {
+        console.error("Failed to delete collaborator", response.status);
+      }
+    } catch (error) {
+      console.error("An error occurred", error);
+    }
+    // Inside deleteCollaborator function, after the fetch call and response check
+    const updatedCollaborators = collaborators.filter(
+      (c) => c.email !== collaboratorEmail
     );
+    setCollaborators(updatedCollaborators);
+  };
+
+  return (
+    <div>
+      <h2>Edit Playlist</h2>
+
+      {/* Form to add a new song */}
+      <form onSubmit={addSong}>
+        <input
+          type="text"
+          name="songName"
+          value={songDetails.songName}
+          onChange={handleSongDetailChange}
+          placeholder="Song Name"
+        />
+        <input
+          type="text"
+          name="songArtist"
+          value={songDetails.songArtist}
+          onChange={handleSongDetailChange}
+          placeholder="Artist Name"
+        />
+        <input
+          type="text"
+          name="songImage"
+          value={songDetails.songImage}
+          onChange={handleSongDetailChange}
+          placeholder="Song Image URL (optional)"
+        />
+        <input
+          type="text"
+          name="songUrl"
+          value={songDetails.songUrl}
+          onChange={handleSongDetailChange}
+          placeholder="Song URL"
+        />
+        <button type="submit">Add Song</button>
+      </form>
+
+      {/* Form to add a new collaborator */}
+      <form onSubmit={addCollaborator}>
+        <input
+          type="email"
+          value={newCollaboratorEmail}
+          onChange={(e) => setNewCollaboratorEmail(e.target.value)}
+          placeholder="Enter collaborator's email"
+        />
+        <button type="submit">Add Collaborator</button>
+      </form>
+
+      {/* Button to delete the entire playlist */}
+      <button onClick={deletePlaylist}>Delete Playlist</button>
+
+      <h2>Songs</h2>
+      {/* List of songs */}
+      {playlist.map((song, index) => (
+        <div key={index}>
+          {song.name} - {song.artist}
+          <button onClick={() => deleteSong(song.id)}>Delete</button>
+        </div>
+      ))}
+
+      <h2>Collaborators</h2>
+      {/* List of collaborators */}
+      {collaborators.map((collaborator, index) => (
+        <div key={index}>
+          {collaborator.email}
+          <button onClick={() => deleteCollaborator(collaborator.email)}>
+            Delete
+          </button>
+        </div>
+      ))}
+    </div>
+  );
 };
 
 export default EditPlaylist;

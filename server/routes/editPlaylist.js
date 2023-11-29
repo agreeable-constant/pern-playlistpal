@@ -2,16 +2,17 @@
 // Import necessary modules and dependencies
 const express = require('express');
 const router = express.Router();
+const pool = require("../db");
 
 // Add a song to a playlist
-router.post('/playlist/:playlistId/songs', async (req, res) => {
+router.post('/:playlistId/songs', async (req, res) => {
     const { playlistId } = req.params;
     const { song_name, song_artist, song_image, song_url } = req.body;
   
     try {
       // Validate playlistId existence...
   
-      const result = await db.query(
+      const result = await pool.query(
         `INSERT INTO songs (song_name, song_artist, song_image, song_url, playlist_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
         [song_name, song_artist, song_image, song_url, playlistId]
       );
@@ -24,13 +25,13 @@ router.post('/playlist/:playlistId/songs', async (req, res) => {
   
 
 // Delete a song from a playlist
-router.delete('/playlist/:playlistId/songs/:songId', async (req, res) => {
+router.delete('/:playlistId/songs/:songId', async (req, res) => {
     const { playlistId, songId } = req.params;
   
     try {
       // Optionally validate that the song belongs to the given playlistId...
   
-      await db.query(`DELETE FROM songs WHERE song_id = $1`, [songId]);
+      await pool.query(`DELETE FROM songs WHERE song_id = $1`, [songId]);
   
       res.status(200).json({ message: 'Song deleted from playlist' });
     } catch (error) {
@@ -44,13 +45,13 @@ router.delete('/playlist/:playlistId', async (req, res) => {
         const { playlistId } = req.params;
     
         try {
-            const playlistExists = await db.query(`SELECT * FROM playlists WHERE playlist_id = $1`, [playlistId]);
+            const playlistExists = await pool.query(`SELECT * FROM playlists WHERE playlist_id = $1`, [playlistId]);
             
             if (playlistExists.rows.length === 0) {
                 return res.status(404).json({ message: 'Playlist not found' });
             }
             
-            await db.query(`DELETE FROM playlists WHERE playlist_id = $1`, [playlistId]);
+            await pool.query(`DELETE FROM playlists WHERE playlist_id = $1`, [playlistId]);
     
             res.status(200).json({ message: 'Playlist deleted' });
         } catch (error) {
@@ -58,41 +59,56 @@ router.delete('/playlist/:playlistId', async (req, res) => {
         }
     });
   
-
 // Add a collaborator to a playlist
-router.post('/playlist/:playlistId/collaborators', async (req, res) => {
+router.post('/:playlistId/collaborators', async (req, res) => {
     const { playlistId } = req.params;
-    const { collaboratorId } = req.body; // collaboratorId should be passed in the request body
-  
-    try {
-      // Validate playlistId and collaboratorId...
-  
-      const result = await db.query(
-        `INSERT INTO playlist_collaborators (playlist_id, collaborator_id) VALUES ($1, $2) RETURNING *`,
-        [playlistId, collaboratorId]
-      );
-  
-      res.status(200).json({ message: 'Collaborator added to playlist', collaborator: result.rows[0] });
-    } catch (error) {
-      res.status(500).json({ message: 'Error adding collaborator to playlist', error: error.message });
-    }
-  });
-  
+    const { collaborator_email } = req.body; // Use collaborator_email to match your schema
 
-// Delete a collaborator from a playlist
-router.delete('/playlist/:playlistId/collaborators/:collaboratorId', async (req, res) => {
-    const { playlistId, collaboratorId } = req.params;
-  
     try {
-      await db.query(
-        `DELETE FROM playlist_collaborators WHERE playlist_id = $1 AND collaborator_id = $2`,
-        [playlistId, collaboratorId]
-      );
-  
-      res.status(200).json({ message: 'Collaborator deleted from playlist' });
+        // First, check if the user with the given email exists
+        const userResult = await pool.query(
+            `SELECT user_id FROM users WHERE user_email = $1`,
+            [collaborator_email]
+        );
+        console.log(userResult) 
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Assuming user_id is needed for the collaborator_id column
+        const userId = userResult.rows[0].user_id;
+
+        // Add the user as a collaborator using the user's ID
+        const result = await pool.query(
+            `INSERT INTO playlist_collaborators (playlist_id, collaborator_id, collaborator_email) VALUES ($1, $2, $3) RETURNING *`,
+            [playlistId, userId, collaborator_email]
+        );
+
+        res.status(200).json({ message: 'Collaborator added to playlist', collaborator: result.rows[0] });
     } catch (error) {
-      res.status(500).json({ message: 'Error deleting collaborator from playlist', error: error.message });
+        res.status(500).json({ message: 'Error adding collaborator to playlist', error: error.message });
     }
-  });
+});
+
+
+
+// Delete a collaborator from a playlist by email
+router.delete('/:playlistId/collaborators/:email', async (req, res) => {
+    const { playlistId, collaborator_email } = req.params;
+
+    try {
+        await pool.query(
+            `DELETE FROM playlist_collaborators WHERE playlist_id = $1 AND collaborator_email = $2`,
+            [playlistId, collaborator_email]
+        );
+
+        res.status(200).json({ message: 'Collaborator deleted from playlist' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting collaborator from playlist', error: error.message });
+    }
+});
+
+
 
 module.exports = router;

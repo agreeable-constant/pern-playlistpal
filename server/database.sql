@@ -15,10 +15,52 @@ CREATE TABLE playlists(
   playlist_id uuid DEFAULT uuid_generate_v4(),
   playlist_name VARCHAR(255) NOT NULL,
   playlist_description VARCHAR(255) NOT NULL,
-  playlist_image VARCHAR(255) NOT NULL,
-  playlist_url VARCHAR(255) NOT NULL,
+  playlist_image bytea NOT NULL,
+  playlist_url VARCHAR(255),
   playlist_owner uuid NOT NULL,
   PRIMARY KEY(playlist_id),
   FOREIGN KEY(playlist_owner) REFERENCES users(user_id) ON DELETE CASCADE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE playlist_songs(
+  playlist_song_id uuid DEFAULT uuid_generate_v4(),
+  playlist_id uuid NOT NULL,
+  song_id VARCHAR(255) NOT NULL,
+  PRIMARY KEY(playlist_song_id),
+  FOREIGN KEY(playlist_id) REFERENCES playlists(playlist_id) ON DELETE CASCADE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE songs(
+  song_id VARCHAR(255) NOT NULL,
+  song_name VARCHAR(255) NOT NULL,
+  song_artist VARCHAR(255) NOT NULL,
+  song_image VARCHAR(255) NOT NULL,
+  song_url VARCHAR(255) NOT NULL,
+  PRIMARY KEY(song_id),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+--playliost analytics
+CREATE TABLE playlist_analytics(
+  playlist_analytics_id uuid DEFAULT uuid_generate_v4(),
+  playlist_id uuid NOT NULL,
+  playlist_analytics_date DATE NOT NULL,
+  playlist_analytics_views INT NOT NULL,
+  playlist_analytics_unique_views INT NOT NULL,
+  PRIMARY KEY(playlist_analytics_id),
+  FOREIGN KEY(playlist_id) REFERENCES playlists(playlist_id) ON DELETE CASCADE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+--playlist collaboartors
+CREATE TABLE playlist_collaborators(
+  playlist_collaborators_id uuid DEFAULT uuid_generate_v4(),
+  playlist_id uuid NOT NULL,
+  collaborator_id uuid NOT NULL,
+  PRIMARY KEY(playlist_collaborators_id),
+  FOREIGN KEY(playlist_id) REFERENCES playlists(playlist_id) ON DELETE CASCADE,
+  FOREIGN KEY(collaborator_id) REFERENCES users(user_id) ON DELETE CASCADE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

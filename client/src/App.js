@@ -1,8 +1,15 @@
 import React, { Fragment, useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate, Link } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+  Link,
+} from "react-router-dom";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Register from "./components/Register.js";
+import CreatePlaylist from "./components/CreatePlaylist"; // Import the CreatePlaylist component
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -11,7 +18,7 @@ function App() {
     try {
       const res = await fetch("http://localhost:5000/authentication/verify", {
         method: "POST",
-        headers: { jwt_token: localStorage.token }
+        headers: { jwt_token: localStorage.token },
       });
 
       const parseRes = await res.json();
@@ -26,7 +33,7 @@ function App() {
     checkAuthenticated();
   }, []);
 
-  const setAuth = boolean => {
+  const setAuth = (boolean) => {
     setIsAuthenticated(boolean);
   };
 
@@ -51,17 +58,47 @@ function App() {
             <Route
               exact
               path="/login"
-              element={!isAuthenticated ? <Login setAuth={setAuth} /> : <Navigate to="/dashboard" />}
+              element={
+                !isAuthenticated ? (
+                  <Login setAuth={setAuth} />
+                ) : (
+                  <Navigate to="/dashboard" />
+                )
+              }
             />
             <Route
               exact
               path="/register"
-              element={!isAuthenticated ? <Register setAuth={setAuth} /> : <Navigate to="/dashboard" />}
+              element={
+                !isAuthenticated ? (
+                  <Register setAuth={setAuth} />
+                ) : (
+                  <Navigate to="/dashboard" />
+                )
+              }
             />
             <Route
               exact
               path="/dashboard"
-              element={isAuthenticated ? <Dashboard setAuth={setAuth} /> : <Navigate to="/login" />}
+              element={
+                isAuthenticated ? (
+                  <>
+                    <Dashboard setAuth={setAuth} />
+                    <div>
+                      <Link to="/create-playlist">Create A Playlist</Link>
+                    </div>
+                  </>
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            <Route
+              exact
+              path="/create-playlist"
+              element={
+                isAuthenticated ? <CreatePlaylist /> : <Navigate to="/login" />
+              }
             />
           </Routes>
         </div>

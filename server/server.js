@@ -15,6 +15,8 @@ app.use("/dashboard", require("./routes/dashboard"));
 
 app.use("/create-playlist", require("./routes/playlists"));
 
+app.use("/edit-playlist", require("./routes/playlists"));
+
 app.listen(5000, () => {
   console.log(`Server is starting on port 5000`);
 });

@@ -9,7 +9,8 @@ import {
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Register from "./components/Register.js";
-import CreatePlaylist from "./components/CreatePlaylist"; // Import the CreatePlaylist component
+import CreatePlaylist from "./components/CreatePlaylist";
+import EditPlaylist from "./components/EditPlaylist";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -98,6 +99,13 @@ function App() {
               path="/create-playlist"
               element={
                 isAuthenticated ? <CreatePlaylist /> : <Navigate to="/login" />
+              }
+            />
+            <Route
+              exact
+              path="/edit-playlist/:playlistId"
+              element={
+                isAuthenticated ? <EditPlaylist /> : <Navigate to="/login" />
               }
             />
           </Routes>

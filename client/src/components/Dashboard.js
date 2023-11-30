@@ -1,42 +1,43 @@
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import "./Dashboard.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Typography,
+  Button,
+  Grid,
+  Card,
+  CardActionArea,
+  CardMedia,
+  CardContent,
+  Box,
+} from "@mui/material";
+import Navbar from "./navbar";
 
 const Dashboard = ({ setAuth }) => {
   const [name, setName] = useState("");
   const [playlists, setPlaylists] = useState([]);
+    const navigate = useNavigate();
 
   const createImageURLs = (playlists) => {
-    return playlists.map(playlist => {
-      const blob = new Blob([new Uint8Array(playlist.playlist_image.data)], { type: 'image/png' });
+    return playlists.map((playlist) => {
+      const blob = new Blob([new Uint8Array(playlist.playlist_image.data)], {
+        type: "image/png",
+      });
       const imageSrc = URL.createObjectURL(blob);
       return { ...playlist, imageSrc };
     });
   };
 
   const getProfile = async () => {
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch("http://localhost:5000/dashboard/", {
         method: "POST",
-        headers: { jwt_token: localStorage.token },
+        headers: { jwt_token: token },
       });
       const parseData = await res.json();
       setName(parseData.user_name);
       const playlistsWithImageURLs = createImageURLs(parseData.playlists || []);
-      setPlaylists(playlistsWithImageURLs);
-    } catch (err) {
-      console.error(err.message);
-    }
-  };
-
-  const logout = async (e) => {
-    e.preventDefault();
-    try {
-      localStorage.removeItem("token");
-      setAuth(false);
-      toast.success("Logout successfully");
-    } catch (err) {
+      setPlaylists(playlistsWithImageURLs);    } catch (err) {
       console.error(err.message);
     }
   };
@@ -44,7 +45,7 @@ const Dashboard = ({ setAuth }) => {
   // Cleanup Blob URLs on component unmount
   useEffect(() => {
     return () => {
-      playlists.forEach(playlist => {
+      playlists.forEach((playlist) => {
         URL.revokeObjectURL(playlist.imageSrc);
       });
     };
@@ -55,23 +56,35 @@ const Dashboard = ({ setAuth }) => {
   }, []);
 
   return (
-    <div>
-      <h1 className="mt-5">Playlist Hub</h1>
-      <h2>Welcome {name}</h2>
-      <button onClick={(e) => logout(e)} className="btn btn-primary logout-btn">
-        Logout
-      </button>{" "}
-      <div className="playlists-container">
+    <Box sx={{ p: 3 }}>
+      <Navbar title="PlaylistPal" setAuth={setAuth}/>
+      <Typography variant="h5" gutterBottom>
+        Welcome {name}, here are your playlists:
+      </Typography>
+
+      <Grid container spacing={2} sx={{ mt: 2 }}>
         {playlists.map((playlist) => (
-          <div key={playlist.playlist_id} className="playlist-tile">
-            <Link to={`/edit-playlist/${playlist.playlist_id}`}>
-                <img src={playlist.imageSrc} alt={playlist.playlist_name} />
-                <h3>{playlist.playlist_name}</h3>
-            </Link>
-          </div>
+          <Grid item key={playlist.playlist_id} xs={12} sm={6} md={4}>
+            <Card>
+              <CardActionArea
+                component={Link}
+                to={`/edit-playlist/${playlist.playlist_id}`}
+              >
+                <CardMedia
+                  component="img"
+                  height="140"
+                  image={playlist.imageSrc}
+                  alt={playlist.playlist_name}
+                />
+                <CardContent>
+                  <Typography variant="h6">{playlist.playlist_name}</Typography>
+                </CardContent>
+              </CardActionArea>
+            </Card>
+          </Grid>
         ))}
-      </div>
-    </div>
+      </Grid>
+    </Box>
   );
 };
 

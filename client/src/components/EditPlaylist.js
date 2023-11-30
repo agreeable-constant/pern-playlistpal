@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import {
+  TextField,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
+  Typography,
+    Container,
+} from "@mui/material";
+import Navbar from "./navbar";
 
 const EditPlaylist = () => {
   const [playlist, setPlaylist] = useState([]); // Holds the list of songs
@@ -13,14 +24,12 @@ const EditPlaylist = () => {
   const [newCollaboratorEmail, setNewCollaboratorEmail] = useState("");
   const { playlistId } = useParams();
 
-
   const handleSongDetailChange = (e) => {
     setSongDetails({ ...songDetails, [e.target.name]: e.target.value });
   };
 
   const addSong = async (e) => {
     e.preventDefault();
-
 
     const songData = {
       song_name: songDetails.songName,
@@ -101,7 +110,7 @@ const EditPlaylist = () => {
           body: JSON.stringify(collaboratorData),
         }
       );
-      console.log(collaboratorData)
+      console.log(collaboratorData);
 
       if (response.ok) {
         console.log("Collaborator added successfully");
@@ -114,7 +123,6 @@ const EditPlaylist = () => {
     }
 
     setNewCollaboratorEmail(""); // Reset the input field
-
   };
 
   const deleteCollaborator = async (collaboratorEmail) => {
@@ -147,103 +155,140 @@ const EditPlaylist = () => {
   useEffect(() => {
     // Fetch songs
     const fetchSongs = async () => {
-      const response = await fetch(`http://localhost:5000/edit-playlist/${playlistId}/songs`);
+      const response = await fetch(
+        `http://localhost:5000/edit-playlist/${playlistId}/songs`
+      );
       const data = await response.json();
       setPlaylist(data);
     };
-  
+
     // Fetch collaborators
     const fetchCollaborators = async () => {
-      const response = await fetch(`http://localhost:5000/edit-playlist/${playlistId}/collaborators`);
+      const response = await fetch(
+        `http://localhost:5000/edit-playlist/${playlistId}/collaborators`
+      );
       const data = await response.json();
       setCollaborators(data);
     };
-  
+
     fetchSongs();
     fetchCollaborators();
   }, [playlistId]);
-  
 
   return (
-    <div>
-      <h2>Edit Playlist</h2>
-
-      {/* Form to add a new song */}
+    <Container maxWidth="md">
+      <Navbar title="PlaylistPal" showLogout={true} />
+      <Typography variant="h4" gutterBottom>
+        Edit Playlist
+      </Typography>
       <form onSubmit={addSong}>
-        <input
-          type="text"
+        <TextField
+          label="Song Name"
           name="songName"
           value={songDetails.songName}
           onChange={handleSongDetailChange}
-          placeholder="Song Name"
+          variant="outlined"
+          margin="normal"
+          fullWidth
         />
-        <input
-          type="text"
+        <TextField
+          label="Artist Name"
           name="songArtist"
           value={songDetails.songArtist}
           onChange={handleSongDetailChange}
-          placeholder="Artist Name"
+          variant="outlined"
+          margin="normal"
+          fullWidth
         />
-        <input
-          type="text"
+
+        <TextField
+          label="Song Image URL (optional)"
           name="songImage"
           value={songDetails.songImage}
           onChange={handleSongDetailChange}
-          placeholder="Song Image URL (optional)"
+          variant="outlined"
+          margin="normal"
+          fullWidth
         />
-        <input
-          type="text"
+
+        <TextField
+          label="Song URL"
           name="songUrl"
           value={songDetails.songUrl}
           onChange={handleSongDetailChange}
-          placeholder="Song URL"
+          variant="outlined"
+          margin="normal"
+          fullWidth
         />
-        <button type="submit">Add Song</button>
+        <Button type="submit" color="primary" variant="contained">
+          Add Song
+        </Button>
       </form>
-
-      {/* Form to add a new collaborator */}
       <form onSubmit={addCollaborator}>
-        <input
+        <TextField
+          label="Collaborator's Email"
           type="email"
           value={newCollaboratorEmail}
           onChange={(e) => setNewCollaboratorEmail(e.target.value)}
-          placeholder="Enter collaborator's email"
+          variant="outlined"
+          margin="normal"
+          fullWidth
         />
-        <button type="submit">Add Collaborator</button>
+        <Button type="submit" color="primary" variant="contained">
+          Add Collaborator
+        </Button>
       </form>
-
       {/* Button to delete the entire playlist */}
-      <button onClick={deletePlaylist}>Delete Playlist</button>
-
-      <h2>Songs</h2>
-{/* List of songs */}
-{playlist.length > 0 ? (
-  playlist.map(song => (
-    <div key={song.song_id}>
-      {song.song_name} - {song.song_artist}
-      <button onClick={() => deleteSong(song.song_id)}>Delete</button>
-    </div>
-  ))
-) : (
-  <p>No songs in the playlist.</p>
-)}
-
-<h2>Collaborators</h2>
-{/* List of collaborators */}
-{collaborators.length > 0 ? (
-  collaborators.map(collaborator => (
-    <div key={collaborator.collaborator_id}>
-      {collaborator.collaborator_email}
-      <button onClick={() => deleteCollaborator(collaborator.collaborator_email)}>
-        Delete
-      </button>
-    </div>
-  ))
-) : (
-  <p>No collaborators in this playlist.</p>
-)}
-</div>
-
+      <Button onClick={deletePlaylist} color="secondary" variant="contained">
+        Delete Playlist
+      </Button>
+      <Typography variant="h6">Songs</Typography>
+      <List>
+        {playlist.length > 0 ? (
+          playlist.map((song) => (
+            <React.Fragment key={song.song_id}>
+              <ListItem>
+                <ListItemText
+                  primary={`${song.song_name} - ${song.song_artist}`}
+                />
+                <Button
+                  onClick={() => deleteSong(song.song_id)}
+                  color="secondary"
+                >
+                  Delete
+                </Button>
+              </ListItem>
+              <Divider />
+            </React.Fragment>
+          ))
+        ) : (
+          <Typography>No songs in the playlist.</Typography>
+        )}
+      </List>
+      <Typography variant="h6">Collaborators</Typography>
+      <List>
+        {collaborators.length > 0 ? (
+          collaborators.map((collaborator) => (
+            <React.Fragment key={collaborator.collaborator_id}>
+              <ListItem>
+                <ListItemText primary={collaborator.collaborator_email} />
+                <Button
+                  onClick={() =>
+                    deleteCollaborator(collaborator.collaborator_email)
+                  }
+                  color="secondary"
+                >
+                  Delete
+                </Button>
+              </ListItem>
+              <Divider />
+            </React.Fragment>
+          ))
+        ) : (
+          <Typography>No collaborators in this playlist.</Typography>
+        )}
+      </List>
+    </Container>
   );
 };
 

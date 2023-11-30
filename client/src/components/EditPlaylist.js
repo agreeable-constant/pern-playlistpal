@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
 const EditPlaylist = () => {
@@ -144,6 +144,26 @@ const EditPlaylist = () => {
     setCollaborators(updatedCollaborators);
   };
 
+  useEffect(() => {
+    // Fetch songs
+    const fetchSongs = async () => {
+      const response = await fetch(`http://localhost:5000/edit-playlist/${playlistId}/songs`);
+      const data = await response.json();
+      setPlaylist(data);
+    };
+  
+    // Fetch collaborators
+    const fetchCollaborators = async () => {
+      const response = await fetch(`http://localhost:5000/edit-playlist/${playlistId}/collaborators`);
+      const data = await response.json();
+      setCollaborators(data);
+    };
+  
+    fetchSongs();
+    fetchCollaborators();
+  }, [playlistId]);
+  
+
   return (
     <div>
       <h2>Edit Playlist</h2>
@@ -196,25 +216,34 @@ const EditPlaylist = () => {
       <button onClick={deletePlaylist}>Delete Playlist</button>
 
       <h2>Songs</h2>
-      {/* List of songs */}
-      {playlist.map((song, index) => (
-        <div key={index}>
-          {song.name} - {song.artist}
-          <button onClick={() => deleteSong(song.id)}>Delete</button>
-        </div>
-      ))}
-
-      <h2>Collaborators</h2>
-      {/* List of collaborators */}
-      {collaborators.map((collaborator, index) => (
-        <div key={index}>
-          {collaborator.email}
-          <button onClick={() => deleteCollaborator(collaborator.email)}>
-            Delete
-          </button>
-        </div>
-      ))}
+{/* List of songs */}
+{playlist.length > 0 ? (
+  playlist.map(song => (
+    <div key={song.song_id}>
+      {song.song_name} - {song.song_artist}
+      <button onClick={() => deleteSong(song.song_id)}>Delete</button>
     </div>
+  ))
+) : (
+  <p>No songs in the playlist.</p>
+)}
+
+<h2>Collaborators</h2>
+{/* List of collaborators */}
+{collaborators.length > 0 ? (
+  collaborators.map(collaborator => (
+    <div key={collaborator.collaborator_id}>
+      {collaborator.collaborator_email}
+      <button onClick={() => deleteCollaborator(collaborator.collaborator_email)}>
+        Delete
+      </button>
+    </div>
+  ))
+) : (
+  <p>No collaborators in this playlist.</p>
+)}
+</div>
+
   );
 };
 

@@ -52,9 +52,12 @@ CREATE TABLE playlist_analytics(
 CREATE TABLE playlist_collaborators(
   playlist_collaborators_id uuid DEFAULT uuid_generate_v4(),
   playlist_id uuid NOT NULL,
+  collaborator_id uuid NOT NULL,
+  collaborator_name VARCHAR(255) NOT NULL,
   collaborator_email VARCHAR(255) NOT NULL,
   PRIMARY KEY(playlist_collaborators_id),
   FOREIGN KEY(playlist_id) REFERENCES playlists(playlist_id) ON DELETE CASCADE,
-  FOREIGN KEY(collaborator_email) REFERENCES users(user_email) ON DELETE CASCADE,
+  FOREIGN KEY(collaborator_id) REFERENCES users(user_id) ON DELETE CASCADE,
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+

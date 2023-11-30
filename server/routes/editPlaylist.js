@@ -25,35 +25,49 @@ router.post('/:playlistId/songs', async (req, res) => {
 // Delete a song from a playlist
 router.delete('/:playlistId/songs/:songId', async (req, res) => {
     const { playlistId, songId } = req.params;
-  
-    try {  
-      await pool.query(`DELETE FROM songs WHERE song_id = $1`, [songId]);
-  
-      res.status(200).json({ message: 'Song deleted from playlist' });
+
+    try {
+        const songExists = await pool.query(
+            `SELECT * FROM songs WHERE song_id = $1 AND playlist_id = $2`,
+            [songId, playlistId]
+        );
+
+        if (songExists.rows.length === 0) {
+            return res.status(404).json({ message: 'Song not found in the specified playlist' });
+        }
+
+        await pool.query(`DELETE FROM songs WHERE song_id = $1 AND playlist_id = $2`, [songId, playlistId]);
+
+        res.status(200).json({ message: 'Song deleted from playlist' });
     } catch (error) {
-      res.status(500).json({ message: 'Error deleting song from playlist', error: error.message });
+        res.status(500).json({ message: 'Error deleting song from playlist', error: error.message });
     }
-  });
+});
+
   
 
 // Delete a playlist
 router.delete('/playlist/:playlistId', async (req, res) => {
-        const { playlistId } = req.params;
-    
-        try {
-            const playlistExists = await pool.query(`SELECT * FROM playlists WHERE playlist_id = $1`, [playlistId]);
-            
-            if (playlistExists.rows.length === 0) {
-                return res.status(404).json({ message: 'Playlist not found' });
-            }
-            
-            await pool.query(`DELETE FROM playlists WHERE playlist_id = $1`, [playlistId]);
-    
-            res.status(200).json({ message: 'Playlist deleted' });
-        } catch (error) {
-            res.status(500).json({ message: 'Error deleting playlist', error: error.message });
+    const { playlistId } = req.params;
+
+    try {
+        const playlistExists = await pool.query(`SELECT * FROM playlists WHERE playlist_id = $1`, [playlistId]);
+
+        if (playlistExists.rows.length === 0) {
+            return res.status(404).json({ message: 'Playlist not found' });
         }
-    });
+
+        // Optionally, handle dependencies like deleting songs or collaborators related to this playlist
+        // For example: await pool.query(`DELETE FROM songs WHERE playlist_id = $1`, [playlistId]);
+
+        await pool.query(`DELETE FROM playlists WHERE playlist_id = $1`, [playlistId]);
+
+        res.status(200).json({ message: 'Playlist deleted' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting playlist', error: error.message });
+    }
+});
+
   
 // Add a collaborator to a playlist
 router.post('/:playlistId/collaborators', async (req, res) => {
@@ -87,14 +101,20 @@ router.post('/:playlistId/collaborators', async (req, res) => {
     }
 });
 
-
-
-
 // Delete a collaborator from a playlist by email
 router.delete('/:playlistId/collaborators/:email', async (req, res) => {
-    const { playlistId, collaborator_email } = req.params;
+    const { playlistId, email: collaborator_email } = req.params;
 
     try {
+        const collaboratorExists = await pool.query(
+            `SELECT * FROM playlist_collaborators WHERE playlist_id = $1 AND collaborator_email = $2`,
+            [playlistId, collaborator_email]
+        );
+
+        if (collaboratorExists.rows.length === 0) {
+            return res.status(404).json({ message: 'Collaborator not found in the specified playlist' });
+        }
+
         await pool.query(
             `DELETE FROM playlist_collaborators WHERE playlist_id = $1 AND collaborator_email = $2`,
             [playlistId, collaborator_email]
@@ -105,6 +125,7 @@ router.delete('/:playlistId/collaborators/:email', async (req, res) => {
         res.status(500).json({ message: 'Error deleting collaborator from playlist', error: error.message });
     }
 });
+
 
 // Get all collaborators of a playlist
 router.get('/:playlistId/collaborators', async (req, res) => {

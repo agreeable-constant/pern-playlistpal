@@ -1,6 +1,7 @@
-import React, { Fragment, useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import { Button, TextField, Typography, Box, Container } from '@mui/material';
 
 const Register = ({ setAuth }) => {
   const [inputs, setInputs] = useState({
@@ -11,8 +12,7 @@ const Register = ({ setAuth }) => {
 
   const { email, password, name } = inputs;
 
-  const onChange = e =>
-    setInputs({ ...inputs, [e.target.name]: e.target.value });
+  const onChange = e => setInputs({ ...inputs, [e.target.name]: e.target.value });
 
   const onSubmitForm = async e => {
     e.preventDefault();
@@ -22,9 +22,7 @@ const Register = ({ setAuth }) => {
         "http://localhost:5000/authentication/register",
         {
           method: "POST",
-          headers: {
-            "Content-type": "application/json"
-          },
+          headers: { "Content-type": "application/json" },
           body: JSON.stringify(body)
         }
       );
@@ -44,37 +42,66 @@ const Register = ({ setAuth }) => {
   };
 
   return (
-    <Fragment>
-      <h1 className="mt-5 text-center">Register</h1>
-      <form onSubmit={onSubmitForm}>
-        <input
-          type="text"
-          name="email"
-          value={email}
-          placeholder="email"
-          onChange={e => onChange(e)}
-          className="form-control my-3"
-        />
-        <input
-          type="password"
-          name="password"
-          value={password}
-          placeholder="password"
-          onChange={e => onChange(e)}
-          className="form-control my-3"
-        />
-        <input
-          type="text"
-          name="name"
-          value={name}
-          placeholder="name"
-          onChange={e => onChange(e)}
-          className="form-control my-3"
-        />
-        <button className="btn btn-success btn-block">Submit</button>
-      </form>
-      <Link to="/login">login</Link>
-    </Fragment>
+    <Container maxWidth="xs">
+      <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography component="h1" variant="h5">
+          Register
+        </Typography>
+        <Box component="form" onSubmit={onSubmitForm} noValidate sx={{ mt: 1 }}>
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            id="email"
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            autoFocus
+            value={email}
+            onChange={onChange}
+          />
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label="Password"
+            type="password"
+            id="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={onChange}
+          />
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            name="name"
+            label="Name"
+            type="text"
+            id="name"
+            autoComplete="name"
+            value={name}
+            onChange={onChange}
+          />
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            color="primary"
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Submit
+          </Button>
+          <Link to="/login" style={{ textDecoration: 'none' }}>
+            <Button variant="text">Already have an account? Sign in</Button>
+          </Link>
+        </Box>
+      </Box>
+    </Container>
   );
 };
 

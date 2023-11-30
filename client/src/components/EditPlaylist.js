@@ -68,11 +68,10 @@ const EditPlaylist = () => {
   };
 
   const deleteSong = async (songId) => {
-    const playlistId = "your-playlist-id"; // Replace with actual playlist ID
 
     try {
       const response = await fetch(
-        `http://localhost:5000/playlist/${playlistId}/songs/${songId}`,
+        `http://localhost:5000/edit-playlist/${playlistId}/songs/${songId}`,
         {
           method: "DELETE",
         }
@@ -89,10 +88,25 @@ const EditPlaylist = () => {
     }
   };
 
-  const deletePlaylist = () => {
-    // Logic to delete the playlist
-    setPlaylist([]);
+  const deletePlaylist = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/edit-playlist/${playlistId}`, {
+        method: "DELETE"
+      });
+  
+      if (response.ok) {
+        console.log("Playlist deleted successfully");
+        setPlaylist([]); // Clearing the local state
+      } else {
+        console.error("Failed to delete playlist", response.status);
+        // Handle errors (e.g., show an error message)
+      }
+    } catch (error) {
+      console.error("An error occurred", error);
+      // Handle errors (e.g., show an error message)
+    }
   };
+  
 
   const addCollaborator = async (e) => {
     e.preventDefault();
@@ -126,11 +140,10 @@ const EditPlaylist = () => {
   };
 
   const deleteCollaborator = async (collaboratorEmail) => {
-    const playlistId = "your-playlist-id"; // Replace with actual playlist ID
 
     try {
       const response = await fetch(
-        `http://localhost:5000/playlist/${playlistId}/collaborators/${collaboratorEmail}`,
+        `http://localhost:5000/edit-playlist/${playlistId}/collaborators/${collaboratorEmail}`,
         {
           method: "DELETE",
         }
